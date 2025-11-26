@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Hierarchy (Sunburst)</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #chart { width: 100vw; height: 100vh; }
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        a { text-decoration: none; color: #2e5688; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Certification Hierarchy</h1>
+        <a href="index.html">← Back to Roadmap</a>
+        <p style="margin-bottom:0; color:#666; font-size:0.9rem;">Click slices to zoom in.</p>
+    </div>
+    <div id="chart"></div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof certificationsData === 'undefined') return;
+
+            const data = certificationsData;
+            
+            // Prepare data for Plotly Sunburst
+            // Structure: ids, labels, parents
+            
+            const ids = ['Root'];
+            const labels = ['All Certifications'];
+            const parents = [''];
+            
+            // Track added nodes to avoid duplicates
+            const addedCategories = new Set();
+            const addedLevels = new Set(); // e.g. "Network Security - Expert"
+
+            data.forEach(cert => {
+                if (!cert.category || cert.category === 'Skill Level Label') return;
+
+                const category = cert.category;
+                const level = cert.level || 'Unknown';
+                const certName = cert.abbreviation || cert.name;
+                
+                // 1. Add Category Node
+                if (!addedCategories.has(category)) {
+                    ids.push(category);
+                    labels.push(category);
+                    parents.push('Root');
+                    addedCategories.add(category);
+                }
+
+                // 2. Add Level Node (Unique per category)
+                const levelId = `${category} - ${level}`;
+                if (!addedLevels.has(levelId)) {
+                    ids.push(levelId);
+                    labels.push(level);
+                    parents.push(category);
+                    addedLevels.add(levelId);
+                }
+
+                // 3. Add Certification Node
+                // Cert IDs must be unique, so append category/level if needed, but usually unique enough.
+                // Let's use a unique ID for the node, but display the cert name as label
+                const certId = `${levelId} - ${certName}`;
+                
+                ids.push(certId);
+                labels.push(certName);
+                parents.push(levelId);
+            });
+
+            const layout = {
+                margin: {l: 0, r: 0, b: 0, t: 0},
+                sunburstcolorway:[
+                    "#70AD47", "#008080", "#fa8e36", "#e4ac03", 
+                    "#2a2a2a", "#683e9b", "#6bb3f6", "#2e5688", "#c0514d"
+                ],
+                extendsunburstcolors: true
+            };
+
+            Plotly.newPlot('chart', [{
+                ids: ids,
+                labels: labels,
+                parents: parents,
+                type: 'sunburst',
+                branchvalues: 'total',
+                maxdepth: 3,
+                insidetextorientation: 'radial'
+            }], layout);
+        });
+    </script>
+</body>
+</html>
+

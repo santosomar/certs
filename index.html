@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Certification Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Cybersecurity Certifications</h1>
+            <p>Explore and filter cybersecurity certifications to plan your career path.</p>
+            <div style="margin-top: 15px;">
+                <a href="visualization_stats.html" class="viz-link">📊 View Statistics</a>
+                <a href="visualization_sunburst.html" class="viz-link" style="margin-left: 15px;">☀️ Sunburst Chart</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search certifications (e.g., CISSP, Cloud)...">
+        </div>
+        <div class="filter-box">
+            <select id="categoryFilter">
+                <option value="All">All Categories</option>
+                <!-- Options will be populated by JS -->
+            </select>
+        </div>
+        <div class="filter-box">
+            <select id="levelFilter">
+                <option value="All">All Levels</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Expert">Expert</option>
+            </select>
+        </div>
+    </div>
+
+    <main class="container">
+        <div id="certGrid" class="cert-grid">
+            <!-- Cards will be injected here -->
+        </div>
+        <div id="noResults" class="hidden">
+            <p>No certifications found matching your criteria.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Based on the <a href="https://pauljerimy.com/security-certification-roadmap/" target="_blank">Security Certification Roadmap</a> by Paul Jerimy.</p>
+        </div>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
