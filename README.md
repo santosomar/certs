@@ -1,6 +1,20 @@
 # Cybersecurity Certification Roadmap - Interactive Tool
 
-This project is a modernized, interactive version of a Cybersecurity Certification Roadmap. It allows users to explore cybersecurity certifications, filter them by domain and level, and visualize the data through interactive charts.
+This project is an interactive Cybersecurity Certification Roadmap. It allows you to explore cybersecurity certifications, filter them by domain and level, and visualize the data through interactive charts.
+
+---
+
+## How to Use
+1. **View the Roadmap**: Open `index.html` in your web browser.
+2. **Explore Data**:
+   - Use the search bar or dropdown menus to filter certifications.
+   - Click "View Statistics" to see the dashboard.
+   - Click "Sunburst Chart" to see the hierarchical view.
+   - Click "Cost vs Level" to explore the scatter plot.
+   - Click "Pathway Builder" to create your custom certification journey.
+   - Explore the "Sankey Flow" and "Network Graph" for deeper insights.
+
+---
 
 ## Features
 - **Interactive Search**: Quickly find certifications by name or abbreviation.
@@ -25,18 +39,10 @@ This project is a modernized, interactive version of a Cybersecurity Certificati
    uv sync
    ```
 
-## How to Use
-1. **View the Roadmap**: Open `index.html` in your web browser.
-2. **Explore Data**:
-   - Use the search bar or dropdown menus to filter certifications.
-   - Click "View Statistics" to see the dashboard.
-   - Click "Sunburst Chart" to see the hierarchical view.
-   - Click "Cost vs Level" to explore the scatter plot.
-   - Click "Pathway Builder" to create your custom certification journey.
-   - Explore the "Sankey Flow" and "Network Graph" for deeper insights.
+---
 
 ## Updating Data
-The certification data is extracted from the original HTML source and stored in `certifications.json`, then converted to `data.js` for the web application.
+The security certification data is stored in `certifications.json`, then converted to `data.js` for the web application.
 
 1. **Prepare Source File**: Ensure you have the original `Security-Certification-Roadmap9.html` file in the project root.
 
