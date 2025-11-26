@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Flow (Sankey)</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #chart { width: 100vw; height: 100vh; }
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        a { text-decoration: none; color: #2e5688; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Certification Distribution Flow</h1>
+        <a href="index.html">← Back to Roadmap</a>
+        <p style="margin-bottom:0; color:#666; font-size:0.9rem;">Visualizing the flow from Categories to Skill Levels.</p>
+    </div>
+    <div id="chart"></div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof certificationsData === 'undefined') return;
+
+            // Data structure for Sankey:
+            // Source nodes (Categories) -> Target nodes (Levels)
+            
+            const categories = new Set();
+            const levels = new Set(['Beginner', 'Intermediate', 'Expert']);
+            
+            // 1. Identify all Categories
+            certificationsData.forEach(c => {
+                if (c.category && c.category !== 'Skill Level Label') {
+                    categories.add(c.category);
+                }
+            });
+
+            const sortedCategories = Array.from(categories).sort();
+            const sortedLevels = ['Beginner', 'Intermediate', 'Expert'];
+            
+            // Create Node List: [Cat1, Cat2, ..., Lev1, Lev2, Lev3]
+            const allNodes = [...sortedCategories, ...sortedLevels];
+            
+            // Map names to indices
+            const nodeMap = new Map();
+            allNodes.forEach((name, index) => nodeMap.set(name, index));
+
+            // 2. Calculate Flows (Links)
+            // Key: "Category|Level", Value: Count
+            const flows = new Map();
+
+            certificationsData.forEach(c => {
+                if (!c.category || c.category === 'Skill Level Label') return;
+                
+                const level = c.level || 'Unknown';
+                if (!levels.has(level)) return; // Skip unknown levels for cleaner chart
+
+                const key = `${c.category}|${level}`;
+                flows.set(key, (flows.get(key) || 0) + 1);
+            });
+
+            const sources = [];
+            const targets = [];
+            const values = [];
+
+            flows.forEach((count, key) => {
+                const [cat, lev] = key.split('|');
+                sources.push(nodeMap.get(cat));
+                targets.push(nodeMap.get(lev));
+                values.push(count);
+            });
+
+            // Colors
+            // Assign colors to nodes. 
+            // Categories: A palette. Levels: Traffic light logic.
+            const catColors = [
+                "#70AD47", "#008080", "#fa8e36", "#e4ac03", 
+                "#2a2a2a", "#683e9b", "#6bb3f6", "#2e5688", "#c0514d"
+            ];
+            
+            const levelColors = {
+                'Beginner': '#28a745',     // Green
+                'Intermediate': '#fd7e14', // Orange
+                'Expert': '#dc3545'        // Red
+            };
+
+            const nodeColors = allNodes.map((name, i) => {
+                if (sortedLevels.includes(name)) return levelColors[name];
+                return catColors[i % catColors.length];
+            });
+
+            const data = {
+                type: "sankey",
+                orientation: "h",
+                node: {
+                    pad: 15,
+                    thickness: 20,
+                    line: { color: "black", width: 0.5 },
+                    label: allNodes,
+                    color: nodeColors
+                },
+                link: {
+                    source: sources,
+                    target: targets,
+                    value: values,
+                    // Make links semi-transparent grey
+                    color: 'rgba(200,200,200, 0.5)'
+                }
+            };
+
+            const layout = {
+                font: { size: 12 },
+                margin: { l: 20, r: 20, t: 20, b: 20 }
+            };
+
+            Plotly.newPlot('chart', [data], layout);
+        });
+    </script>
+</body>
+</html>
+

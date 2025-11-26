@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Network Graph</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #mynetwork { width: 100vw; height: 100vh; background-color: #f8f9fa; }
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        a { text-decoration: none; color: #2e5688; font-weight: 600; }
+        .legend { margin-top: 10px; font-size: 0.8rem; }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Certification Network</h1>
+        <a href="index.html">← Back to Roadmap</a>
+        <p style="margin-bottom:0; color:#666; font-size:0.9rem;">Clusters show certifications grouped by domain.</p>
+        <div class="legend">
+            <div><span class="dot" style="background:#28a745;"></span>Beginner</div>
+            <div><span class="dot" style="background:#fd7e14;"></span>Intermediate</div>
+            <div><span class="dot" style="background:#dc3545;"></span>Expert</div>
+        </div>
+    </div>
+    <div id="mynetwork"></div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof certificationsData === 'undefined') return;
+
+            const nodes = [];
+            const edges = [];
+            
+            // 1. Create Category Nodes (Hubs)
+            const categories = new Set();
+            certificationsData.forEach(c => {
+                if (c.category && c.category !== 'Skill Level Label') categories.add(c.category);
+            });
+
+            const catColors = [
+                "#70AD47", "#008080", "#fa8e36", "#e4ac03", 
+                "#2a2a2a", "#683e9b", "#6bb3f6", "#2e5688", "#c0514d"
+            ];
+
+            // Assign ID map for categories to avoid collision with cert IDs
+            const catMap = new Map();
+            let catIndex = 0;
+
+            Array.from(categories).sort().forEach((cat, i) => {
+                const id = `CAT_${i}`;
+                catMap.set(cat, id);
+                nodes.push({
+                    id: id,
+                    label: cat,
+                    shape: 'hexagon',
+                    size: 30,
+                    color: {
+                        background: '#e0e0e0',
+                        border: '#999'
+                    },
+                    font: { size: 16, face: 'Inter', strokeWidth: 2, strokeColor: '#fff' }
+                });
+            });
+
+            // 2. Create Cert Nodes and Edges
+            const levelColorMap = {
+                'Beginner': '#28a745',
+                'Intermediate': '#fd7e14',
+                'Expert': '#dc3545',
+                'Unknown': '#999'
+            };
+
+            certificationsData.forEach(cert => {
+                if (!cert.category || cert.category === 'Skill Level Label') return;
+
+                const level = cert.level || 'Unknown';
+                const color = levelColorMap[level];
+
+                // Use abbreviation as label to keep graph readable
+                const label = cert.abbreviation || cert.name.substring(0, 10) + '...';
+                
+                // Unique ID for cert node
+                const certId = cert.id; // Assuming IDs are unique in JSON, usually abbreviation
+
+                nodes.push({
+                    id: certId,
+                    label: label,
+                    title: `<b>${cert.name}</b><br>Level: ${level}<br>Cost: ${cert.details.find(d=>d.includes('$')) || 'Unknown'}`,
+                    shape: 'dot',
+                    size: 10,
+                    color: {
+                        background: color,
+                        border: '#fff'
+                    },
+                    url: cert.url
+                });
+
+                // Link to Category
+                const catId = catMap.get(cert.category);
+                if (catId) {
+                    edges.push({
+                        from: certId,
+                        to: catId,
+                        color: { color: '#ddd', opacity: 0.5 },
+                        length: 150 // Spring length
+                    });
+                }
+            });
+
+            // 3. Render Network
+            const container = document.getElementById('mynetwork');
+            const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+            const options = {
+                physics: {
+                    stabilization: false,
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 95,
+                        springConstant: 0.04,
+                        damping: 0.09,
+                        avoidOverlap: 0.2
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200
+                }
+            };
+
+            const network = new vis.Network(container, data, options);
+
+            // Click handler to open URL
+            network.on("doubleClick", function (params) {
+                if (params.nodes.length === 1) {
+                    const nodeId = params.nodes[0];
+                    const node = nodes.find(n => n.id === nodeId);
+                    if (node && node.url && node.url !== '#' && !node.id.startsWith('CAT_')) {
+                        window.open(node.url, '_blank');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

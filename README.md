@@ -10,6 +10,8 @@ This project is a modernized, interactive version of a Cybersecurity Certificati
 - **Sunburst Visualization**: Explore the hierarchy of certifications in an interactive sunburst chart via `visualization_sunburst.html`.
 - **Cost vs. Level Scatter Plot**: Visualize the relationship between certification cost and skill level via `visualization_scatter.html`.
 - **Pathway Builder**: Interactive swimlane view to select and build your own certification path (`visualization_pathways.html`).
+- **Sankey Diagram**: Visualize the flow and distribution of certifications from Categories to Skill Levels (`visualization_sankey.html`).
+- **Network Graph**: Explore the relationships and clusters of certifications by domain (`visualization_network.html`).
 - **Data-Driven**: Certifications are loaded from `data.js`, making updates easier.
 
 ## Prerequisites
@@ -31,6 +33,7 @@ This project is a modernized, interactive version of a Cybersecurity Certificati
    - Click "Sunburst Chart" to see the hierarchical view.
    - Click "Cost vs Level" to explore the scatter plot.
    - Click "Pathway Builder" to create your custom certification journey.
+   - Explore the "Sankey Flow" and "Network Graph" for deeper insights.
 
 ## Updating Data
 The certification data is extracted from the original HTML source and stored in `certifications.json`, then converted to `data.js` for the web application.
@@ -55,6 +58,8 @@ The certification data is extracted from the original HTML source and stored in 
 - `visualization_sunburst.html`: Sunburst chart visualization.
 - `visualization_scatter.html`: Cost vs. Level scatter plot.
 - `visualization_pathways.html`: Interactive pathway builder.
+- `visualization_sankey.html`: Sankey flow diagram.
+- `visualization_network.html`: Network graph visualization.
 - `extract_certs.py`: Python script to parse the original HTML and generate JSON.
 - `style.css`: Stylesheet for the application.
 - `script.js`: Main logic for the roadmap view.
