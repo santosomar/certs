@@ -27,7 +27,7 @@
     <div class="header">
         <h1>Certification Hierarchy</h1>
         <a href="index.html">← Back to Roadmap</a>
-        <p style="margin-bottom:0; color:#666; font-size:0.9rem;">Click slices to zoom in.</p>
+        <p style="margin-bottom:0; color:#666; font-size:0.9rem;">Click slices to zoom in.<br>Double-click a certification to open its link.</p>
     </div>
     <div id="chart"></div>
 
@@ -44,10 +44,14 @@
             const ids = ['Root'];
             const labels = ['All Certifications'];
             const parents = [''];
+            const urls = ['']; // Array to store URLs
             
             // Track added nodes to avoid duplicates
             const addedCategories = new Set();
             const addedLevels = new Set(); // e.g. "Network Security - Expert"
+
+            // Store URLs by ID for quick lookup
+            const urlMap = {};
 
             data.forEach(cert => {
                 if (!cert.category || cert.category === 'Skill Level Label') return;
@@ -55,12 +59,14 @@
                 const category = cert.category;
                 const level = cert.level || 'Unknown';
                 const certName = cert.abbreviation || cert.name;
+                const certUrl = cert.url || '#';
                 
                 // 1. Add Category Node
                 if (!addedCategories.has(category)) {
                     ids.push(category);
                     labels.push(category);
                     parents.push('Root');
+                    urls.push('');
                     addedCategories.add(category);
                 }
 
@@ -70,17 +76,19 @@
                     ids.push(levelId);
                     labels.push(level);
                     parents.push(category);
+                    urls.push('');
                     addedLevels.add(levelId);
                 }
 
                 // 3. Add Certification Node
-                // Cert IDs must be unique, so append category/level if needed, but usually unique enough.
-                // Let's use a unique ID for the node, but display the cert name as label
                 const certId = `${levelId} - ${certName}`;
                 
                 ids.push(certId);
                 labels.push(certName);
                 parents.push(levelId);
+                urls.push(certUrl);
+                
+                urlMap[certId] = certUrl;
             });
 
             const layout = {
@@ -92,17 +100,35 @@
                 extendsunburstcolors: true
             };
 
-            Plotly.newPlot('chart', [{
+            const plotData = [{
                 ids: ids,
                 labels: labels,
                 parents: parents,
+                customdata: urls, // Pass URLs as custom data
                 type: 'sunburst',
                 branchvalues: 'total',
                 maxdepth: 3,
-                insidetextorientation: 'radial'
-            }], layout);
+                insidetextorientation: 'radial',
+                hovertemplate: '<b>%{label}</b><br>%{parent}<extra></extra>'
+            }];
+
+            Plotly.newPlot('chart', plotData, layout);
+
+            // Handle click events
+            document.getElementById('chart').on('plotly_click', function(data) {
+                // Plotly captures the click event. 
+                // We check if customdata (URL) is present for the clicked point.
+                if (data.points.length > 0) {
+                    const point = data.points[0];
+                    const url = point.customdata;
+                    
+                    // Only open if it's a leaf node (certification) with a valid URL
+                    if (url && url !== '' && url !== '#') {
+                        window.open(url, '_blank');
+                    }
+                }
+            });
         });
     </script>
 </body>
 </html>
-

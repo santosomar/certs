@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Cost vs. Level</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --accent-color: #2e5688;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .nav-link {
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        .chart-container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 70vh;
+            position: relative;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label { font-weight: 500; font-size: 0.9rem; }
+        select {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cost vs. Skill Level Analysis</h1>
+            <div>
+                <a href="index.html" class="nav-link" style="margin-right: 15px;">← Back to Roadmap</a>
+            </div>
+        </header>
+
+        <div class="chart-container">
+            <canvas id="scatterChart"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="categoryFilter">Filter by Category:</label>
+                <select id="categoryFilter">
+                    <option value="All">All Categories</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="hideFree" checked> Hide Unknown/Free Costs (0)
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof certificationsData === 'undefined') return;
+
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const hideFreeCheckbox = document.getElementById('hideFree');
+
+            // Colors per category
+            const categoryColors = {
+                'Network Security': '#70AD47',
+                'Identity and Access Management': '#008080',
+                'Security Architecture and Engineering': '#fa8e36',
+                'Asset Security': '#e4ac03',
+                'Security and Risk Management': '#2a2a2a',
+                'Security Assessment and Testing': '#683e9b',
+                'Software Development Security': '#6bb3f6',
+                'Security Operations (Blue Team)': '#2e5688',
+                'Security Operations (Red Team)': '#c0514d'
+            };
+
+            // Map levels to numeric values for X-axis
+            const levelMap = {
+                'Beginner': 1,
+                'Intermediate': 2,
+                'Expert': 3
+            };
+
+            let chart;
+
+            function parseCost(details) {
+                if (!details) return 0;
+                const priceText = details.find(d => d.includes('$'));
+                if (priceText) {
+                    const match = priceText.match(/\$\s*([\d,]+)/);
+                    if (match) {
+                        return parseInt(match[1].replace(/,/g, ''), 10);
+                    }
+                }
+                return 0;
+            }
+
+            function prepareData() {
+                const selectedCategory = categoryFilter.value;
+                const hideFree = hideFreeCheckbox.checked;
+                
+                const datasets = [];
+                const categories = new Set();
+
+                // Group data by category
+                const groupedData = {};
+
+                certificationsData.forEach(cert => {
+                    if (!cert.category || cert.category === 'Skill Level Label') return;
+                    categories.add(cert.category);
+
+                    if (selectedCategory !== 'All' && cert.category !== selectedCategory) return;
+
+                    const cost = parseCost(cert.details);
+                    if (hideFree && cost === 0) return;
+
+                    const levelVal = levelMap[cert.level] || 0;
+                    // Add random jitter to X-axis to prevent overlapping points
+                    const jitter = (Math.random() - 0.5) * 0.3; 
+
+                    if (!groupedData[cert.category]) {
+                        groupedData[cert.category] = [];
+                    }
+
+                    groupedData[cert.category].push({
+                        x: levelVal + jitter,
+                        y: cost,
+                        name: cert.name || cert.abbreviation,
+                        abbreviation: cert.abbreviation,
+                        level: cert.level
+                    });
+                });
+
+                // Create datasets
+                for (const [cat, data] of Object.entries(groupedData)) {
+                    datasets.push({
+                        label: cat,
+                        data: data,
+                        backgroundColor: categoryColors[cat] || '#999',
+                        borderColor: categoryColors[cat] || '#999',
+                        borderWidth: 1,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    });
+                }
+
+                return { datasets, categories: Array.from(categories).sort() };
+            }
+
+            function initChart() {
+                const { datasets, categories } = prepareData();
+
+                // Populate filter if empty
+                if (categoryFilter.options.length === 1) {
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = cat;
+                        categoryFilter.appendChild(option);
+                    });
+                }
+
+                const config = {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: 'Skill Level (1: Beginner, 2: Intermediate, 3: Expert)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        if (Math.abs(value - 1) < 0.2) return 'Beginner';
+                                        if (Math.abs(value - 2) < 0.2) return 'Intermediate';
+                                        if (Math.abs(value - 3) < 0.2) return 'Expert';
+                                        return '';
+                                    },
+                                    stepSize: 1
+                                },
+                                min: 0.5,
+                                max: 3.5
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Estimated Cost ($)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const point = context.raw;
+                                        return `${point.abbreviation}: $${point.y.toLocaleString()}`;
+                                    },
+                                    afterLabel: function(context) {
+                                        return context.raw.name;
+                                    }
+                                }
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (chart) {
+                    chart.destroy();
+                }
+                chart = new Chart(ctx, config);
+            }
+
+            // Event Listeners
+            categoryFilter.addEventListener('change', initChart);
+            hideFreeCheckbox.addEventListener('change', initChart);
+
+            // Initial Load
+            initChart();
+        });
+    </script>
+</body>
+</html>
+
