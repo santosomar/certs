@@ -1,6 +1,6 @@
 # Cybersecurity Certification Roadmap - Interactive Tool
 
-This project is a modernized, interactive version of the Security Certification Roadmap. It allows users to explore cybersecurity certifications, filter them by domain and level, and visualize the data through interactive charts.
+This project is a modernized, interactive version of a Cybersecurity Certification Roadmap. It allows users to explore cybersecurity certifications, filter them by domain and level, and visualize the data through interactive charts.
 
 ## Features
 - **Interactive Search**: Quickly find certifications by name or abbreviation.
@@ -9,6 +9,7 @@ This project is a modernized, interactive version of the Security Certification 
 - **Analytics Dashboard**: View statistics on certification costs, distribution by domain, and skill levels via `visualization_stats.html`.
 - **Sunburst Visualization**: Explore the hierarchy of certifications in an interactive sunburst chart via `visualization_sunburst.html`.
 - **Cost vs. Level Scatter Plot**: Visualize the relationship between certification cost and skill level via `visualization_scatter.html`.
+- **Pathway Builder**: Interactive swimlane view to select and build your own certification path (`visualization_pathways.html`).
 - **Data-Driven**: Certifications are loaded from `data.js`, making updates easier.
 
 ## Prerequisites
@@ -29,6 +30,7 @@ This project is a modernized, interactive version of the Security Certification 
    - Click "View Statistics" to see the dashboard.
    - Click "Sunburst Chart" to see the hierarchical view.
    - Click "Cost vs Level" to explore the scatter plot.
+   - Click "Pathway Builder" to create your custom certification journey.
 
 ## Updating Data
 The certification data is extracted from the original HTML source and stored in `certifications.json`, then converted to `data.js` for the web application.
@@ -52,6 +54,7 @@ The certification data is extracted from the original HTML source and stored in 
 - `visualization_stats.html`: Statistics dashboard.
 - `visualization_sunburst.html`: Sunburst chart visualization.
 - `visualization_scatter.html`: Cost vs. Level scatter plot.
+- `visualization_pathways.html`: Interactive pathway builder.
 - `extract_certs.py`: Python script to parse the original HTML and generate JSON.
 - `style.css`: Stylesheet for the application.
 - `script.js`: Main logic for the roadmap view.

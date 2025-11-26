@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Pathway Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --accent-color: #2e5688;
+            --border-color: #e1e4e8;
+            --selected-color: #e8f0fe;
+            --selected-border: #2e5688;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        h1 { margin: 0; font-size: 1.2rem; }
+        .nav-link {
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        select {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Swimlanes */
+        .swimlanes-container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            overflow-x: auto;
+            background-color: #f0f2f5;
+        }
+        .swimlane {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+        .swimlane-header {
+            background: var(--accent-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 0;
+        }
+        .swimlane-content {
+            background: rgba(255,255,255,0.5);
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid var(--border-color);
+            border-top: none;
+        }
+        
+        /* Cards */
+        .cert-card {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .cert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .cert-card.selected {
+            border: 2px solid var(--selected-border);
+            background-color: var(--selected-color);
+        }
+        .cert-card.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: var(--selected-border);
+            font-weight: bold;
+        }
+        .cert-abbr { font-weight: 700; font-size: 0.95rem; color: #2c3e50; }
+        .cert-name { font-size: 0.8rem; color: #666; margin-top: 4px; }
+        .cert-cost { 
+            font-size: 0.75rem; 
+            color: #28a745; 
+            font-weight: 600; 
+            margin-top: 6px; 
+            display: inline-block;
+            background: #e6f9e6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Sidebar */
+        .path-sidebar {
+            width: 300px;
+            background: white;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .path-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .path-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .path-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+        .path-item-step {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .path-item-content { flex: 1; }
+        .path-total {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .total-label { font-size: 0.8rem; color: #666; }
+        .total-amount { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); }
+        
+        .btn-reset {
+            width: 100%;
+            padding: 10px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            color: #333;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .btn-reset:hover { background: #e0e0e0; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:20px;">
+            <h1>🚀 Pathway Builder</h1>
+            <div class="controls">
+                <select id="categoryFilter">
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+        </div>
+        <a href="index.html" class="nav-link">← Back to Roadmap</a>
+    </header>
+
+    <div class="main-content">
+        <div class="swimlanes-container">
+            <!-- Beginner Lane -->
+            <div class="swimlane">
+                <div class="swimlane-header" style="background: #28a745;">Beginner</div>
+                <div class="swimlane-content" id="lane-beginner"></div>
+            </div>
+            
+            <!-- Intermediate Lane -->
+            <div class="swimlane">
+                <div class="swimlane-header" style="background: #fd7e14;">Intermediate</div>
+                <div class="swimlane-content" id="lane-intermediate"></div>
+            </div>
+            
+            <!-- Expert Lane -->
+            <div class="swimlane">
+                <div class="swimlane-header" style="background: #dc3545;">Expert</div>
+                <div class="swimlane-content" id="lane-expert"></div>
+            </div>
+        </div>
+
+        <div class="path-sidebar">
+            <div class="path-header">
+                <h2 style="margin:0; font-size:1.1rem;">Your Certification Path</h2>
+                <p style="margin:5px 0 0; font-size:0.8rem; color:#666;">Select certifications to build your roadmap.</p>
+            </div>
+            
+            <div class="path-list" id="pathList">
+                <div class="empty-state">No certifications selected</div>
+            </div>
+
+            <div class="path-total">
+                <div class="total-label">Estimated Total Cost</div>
+                <div class="total-amount" id="totalCost">$0</div>
+            </div>
+            
+            <button class="btn-reset" id="resetBtn">Reset Path</button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof certificationsData === 'undefined') return;
+
+            const categoryFilter = document.getElementById('categoryFilter');
+            const pathListEl = document.getElementById('pathList');
+            const totalCostEl = document.getElementById('totalCost');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            const lanes = {
+                'Beginner': document.getElementById('lane-beginner'),
+                'Intermediate': document.getElementById('lane-intermediate'),
+                'Expert': document.getElementById('lane-expert')
+            };
+
+            let selectedCerts = new Set(); // Store IDs of selected certs
+            let currentCategory = '';
+
+            // 1. Populate Categories
+            const categories = new Set();
+            certificationsData.forEach(c => {
+                if (c.category && c.category !== 'Skill Level Label') categories.add(c.category);
+            });
+            Array.from(categories).sort().forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                categoryFilter.appendChild(opt);
+            });
+            
+            // Set default category (first one) and render
+            if (categories.size > 0) {
+                currentCategory = Array.from(categories).sort()[0];
+                categoryFilter.value = currentCategory;
+                renderSwimlanes();
+            }
+
+            // 2. Helper: Parse Cost
+            function getCost(details) {
+                if (!details) return 0;
+                const priceText = details.find(d => d.includes('$'));
+                if (priceText) {
+                    const match = priceText.match(/\$\s*([\d,]+)/);
+                    if (match) return parseInt(match[1].replace(/,/g, ''), 10);
+                }
+                return 0;
+            }
+
+            // 3. Render Swimlanes
+            function renderSwimlanes() {
+                // Clear lanes
+                Object.values(lanes).forEach(lane => lane.innerHTML = '');
+
+                const filteredCerts = certificationsData.filter(c => c.category === currentCategory);
+
+                // If no certs for this category, show message
+                if (filteredCerts.length === 0) return;
+
+                filteredCerts.forEach(cert => {
+                    const level = cert.level || 'Unknown';
+                    const lane = lanes[level];
+                    if (!lane) return;
+
+                    const cost = getCost(cert.details);
+                    const card = document.createElement('div');
+                    card.className = `cert-card ${selectedCerts.has(cert.id) ? 'selected' : ''}`;
+                    card.dataset.id = cert.id;
+                    card.dataset.cost = cost;
+                    
+                    card.innerHTML = `
+                        <div class="cert-abbr">${cert.abbreviation}</div>
+                        <div class="cert-name">${cert.name}</div>
+                        ${cost > 0 ? `<div class="cert-cost">$${cost.toLocaleString()}</div>` : ''}
+                    `;
+
+                    card.addEventListener('click', () => toggleCert(cert, card));
+                    lane.appendChild(card);
+                });
+            }
+
+            // 4. Toggle Selection
+            function toggleCert(cert, cardElement) {
+                if (selectedCerts.has(cert.id)) {
+                    selectedCerts.delete(cert.id);
+                    cardElement.classList.remove('selected');
+                } else {
+                    selectedCerts.add(cert.id);
+                    cardElement.classList.add('selected');
+                }
+                updateSidebar();
+            }
+
+            // 5. Update Sidebar Logic
+            function updateSidebar() {
+                pathListEl.innerHTML = '';
+                let total = 0;
+
+                if (selectedCerts.size === 0) {
+                    pathListEl.innerHTML = '<div class="empty-state">No certifications selected</div>';
+                    totalCostEl.textContent = '$0';
+                    return;
+                }
+
+                // Get selected cert objects and sort by Level
+                const selectedObjects = certificationsData.filter(c => selectedCerts.has(c.id));
+                
+                const levelOrder = { 'Beginner': 1, 'Intermediate': 2, 'Expert': 3, 'Unknown': 4 };
+                selectedObjects.sort((a, b) => {
+                    return (levelOrder[a.level] || 4) - (levelOrder[b.level] || 4);
+                });
+
+                selectedObjects.forEach((cert, index) => {
+                    const cost = getCost(cert.details);
+                    total += cost;
+
+                    const item = document.createElement('div');
+                    item.className = 'path-item';
+                    item.innerHTML = `
+                        <div class="path-item-step">${index + 1}</div>
+                        <div class="path-item-content">
+                            <div style="font-weight:600;">${cert.abbreviation}</div>
+                            <div style="font-size:0.75rem; color:#666;">${cert.level} • ${cost > 0 ? '$' + cost.toLocaleString() : 'Free/Unknown'}</div>
+                        </div>
+                    `;
+                    pathListEl.appendChild(item);
+                });
+
+                totalCostEl.textContent = '$' + total.toLocaleString();
+            }
+
+            // 6. Event Listeners
+            categoryFilter.addEventListener('change', (e) => {
+                currentCategory = e.target.value;
+                // Optional: Clear selection when changing category? 
+                // Let's keep selections for now so users can build cross-domain paths if they want,
+                // but standard use case is usually single domain.
+                renderSwimlanes();
+            });
+
+            resetBtn.addEventListener('click', () => {
+                selectedCerts.clear();
+                renderSwimlanes();
+                updateSidebar();
+            });
+        });
+    </script>
+</body>
+</html>
+
